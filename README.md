@@ -1,66 +1,34 @@
-## Foundry
+# Mochi Network contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+The feed ranking algorithm is a public smart contract that anyone can read,
+fork and swap. `IFeedAlgorithm` is the whole idea in one interface.
 
-Foundry consists of:
+## Setup
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```bash
+git submodule update --init --recursive
+forge test
 ```
 
-### Test
+## Layout
 
-```shell
-$ forge test
-```
+| Path | Purpose |
+|---|---|
+| `src/interfaces/IFeedAlgorithm.sol` | The contract every algorithm implements. Frozen. |
+| `src/` | Registries and the social graph |
+| `src/algorithms/` | Shipped ranking algorithms |
+| `script/DeployStubs.s.sol` | Day-3 stand-in, deleted once the real contracts deploy |
+| `abi/` | ABIs the frontend and indexer build against |
+| `DEPLOYED.md` | Addresses and measured gas |
 
-### Format
+## Rules that are not style preferences
 
-```shell
-$ forge fmt
-```
+- **Post text never enters storage.** It lives in calldata and event data.
+  Only what a ranking contract reads belongs in storage.
+- **No admin functions anywhere.** No owner, no upgrade path, no `addSeed`.
+  The seed set is fixed in the constructor at deployment.
+- **`rank()` must never revert.** A reverting algorithm renders as a blank
+  feed, and algorithms are deployed by strangers.
 
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Design rationale: `docs/superpowers/specs/2026-09-13-mochi-network-design.md`
+Task list: `docs/superpowers/plans/2026-09-13-contracts.md`
