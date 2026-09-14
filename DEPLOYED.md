@@ -1,23 +1,22 @@
 # Deployed contracts — Monad testnet
 
-**Chain id 10143 · deployed 2026-09-14 · explorer https://testnet.monadscan.com**
+**Chain id 10143 · redeployed 2026-09-14 · explorer https://testnet.monadscan.com**
 
-> **Provisional deployment.** The seed set holds only the deployer wallet. Replace
-> `seeds.json` with three team wallets plus the real Monad ecosystem addresses and
-> redeploy before the demo — the seed set is immutable once deployed.
+> **Seed set: 31 anchors** — the deployer plus thirty team-controlled wallets
+> with invented handles. Immutable once deployed.
 
 | Contract | Address |
 |---|---|
-| SocialGraph | `0x8e63326fa167d22fdc0cc2e4172ecdd4fd138de0` |
-| IdentityRegistry | `0x655068668d57c85cace3ab7d1fd8eeb3ce6b1c2c` |
-| PostRegistry | `0x556beb11957955ff4fb4c5263d1e4a4b68bea197` |
-| AlgorithmRegistry | `0x56ca4d9bb90ff6983b46506a78cc3acccc3bff73` |
-| ChronoFeed | `0xe6e7ed4a1091d5b29d0fabf22fc44348d0d6d69d` |
-| FollowFeed | `0x51b414ccc6330db98a6b52110b1441f5c5084ea5` |
-| AffinityFeed | `0x9088997666c9a9e66df0ee2b833a88b2fb1665ef` |
-| SerendipityFeed | `0x476a8fb0270bed8de0e0d37ec21b801cd19502ba` |
-| DiscoveryFeed | `0x2d1cef498eea5054f85041c52cccdf76b600570a` |
-| ParametricFeed | `0x38feae33d194fc751b4903d125c627f97dd95a21` |
+| SocialGraph | `0x96c1bd8316597d2e2823d4c2748400ce4c511a87` |
+| IdentityRegistry | `0x186e8c857ae91458534da3b277ab31275bf7b781` |
+| PostRegistry | `0xb96f26c1d2c798366308d4631ae9ab312adc5b45` |
+| AlgorithmRegistry | `0x26f7fde6bf9a0acbe42e5457118b38856dacef81` |
+| ChronoFeed | `0x66907c3795aeb693ef432af30bea3ad23e6b7d4b` |
+| FollowFeed | `0x6ef65e41ec5f00a0e9e4b6794ca85df29592f7ab` |
+| AffinityFeed | `0xacf04de12806e411cc7f74def98984532bc443d4` |
+| SerendipityFeed | `0xff2ee2c1a49b7b80a6158cd3c9a47d78bfa304be` |
+| DiscoveryFeed | `0x2437ffe6d7eec1d794c6eb3519a46c2cebf2f6e3` |
+| ParametricFeed | `0x66eaa67ea0985f46917c4a5f9c93282622f8644a` |
 
 Default feed slot: SerendipityFeed. Default explore slot: DiscoveryFeed.
 Six algorithms registered. No contract has an admin function.
