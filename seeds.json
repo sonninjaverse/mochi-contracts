@@ -1,0 +1,8 @@
+{
+  "comment": "Depth-0 trust anchors, fixed at deployment. Being listed here requires nothing from these accounts and implies no endorsement of this project. REPLACE these placeholders with 3 team wallets plus ~30 real Monad ecosystem addresses before deploying.",
+  "seeds": [
+    "0x0000000000000000000000000000000000000001",
+    "0x0000000000000000000000000000000000000002",
+    "0x0000000000000000000000000000000000000003"
+  ]
+}

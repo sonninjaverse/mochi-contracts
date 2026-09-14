@@ -1,5 +1,21 @@
 [
   {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "graph_",
+        "type": "address",
+        "internalType": "contract SocialGraph"
+      },
+      {
+        "name": "posts_",
+        "type": "address",
+        "internalType": "contract PostRegistry"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
     "type": "function",
     "name": "description",
     "inputs": [],
@@ -11,6 +27,19 @@
       }
     ],
     "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "graph",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract SocialGraph"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -27,10 +56,23 @@
   },
   {
     "type": "function",
+    "name": "posts",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract PostRegistry"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "rank",
     "inputs": [
       {
-        "name": "",
+        "name": "viewer",
         "type": "address",
         "internalType": "address"
       },
@@ -42,16 +84,16 @@
     ],
     "outputs": [
       {
-        "name": "orderedIds",
+        "name": "",
         "type": "uint256[]",
         "internalType": "uint256[]"
       },
       {
-        "name": "scores",
+        "name": "",
         "type": "uint256[]",
         "internalType": "uint256[]"
       }
     ],
-    "stateMutability": "pure"
+    "stateMutability": "view"
   }
 ]
