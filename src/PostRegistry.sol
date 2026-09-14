@@ -19,6 +19,9 @@ contract PostRegistry {
         // --- slot 2 ---
         uint32 likeCount; // raw likes
         uint32 weightedLikes; // likes filtered by SocialGraph.weightOf
+        // --- slot 3 ---
+        uint32 dislikeCount; // raw dislikes
+        uint32 weightedDislikes; // dislikes filtered the same way
         uint32 repostCount; // reserved
         uint32 replyCount; // reserved
     }
@@ -31,6 +34,7 @@ contract PostRegistry {
     mapping(uint256 => Post) private _posts;
 
     mapping(uint256 => mapping(address => bool)) public hasLiked;
+    mapping(uint256 => mapping(address => bool)) public hasDisliked;
 
     /// @notice How many times `from` has engaged with content by `to`.
     /// @dev Written at like time so ranking can read affinity in O(1) instead
@@ -41,6 +45,8 @@ contract PostRegistry {
     event PostCreated(uint256 indexed id, address indexed author, uint48 createdAt, string text);
     event Liked(uint256 indexed id, address indexed account, uint32 weight);
     event Unliked(uint256 indexed id, address indexed account);
+    event Disliked(uint256 indexed id, address indexed account, uint32 weight);
+    event Undisliked(uint256 indexed id, address indexed account);
 
     constructor(SocialGraph graph_) {
         graph = graph_;
@@ -60,6 +66,8 @@ contract PostRegistry {
             parentId: 0,
             likeCount: 0,
             weightedLikes: 0,
+            dislikeCount: 0,
+            weightedDislikes: 0,
             repostCount: 0,
             replyCount: 0
         });
@@ -81,6 +89,11 @@ contract PostRegistry {
         if (p.author == address(0)) revert NoSuchPost();
         if (hasLiked[id][msg.sender]) return;
 
+        // A vote is one direction at a time, the way Reddit works. Liking
+        // something you had disliked withdraws the dislike rather than leaving
+        // the post counted in both columns.
+        if (hasDisliked[id][msg.sender]) _clearDislike(p, id);
+
         hasLiked[id][msg.sender] = true;
         uint32 weight = graph.weightOf(msg.sender);
 
@@ -96,17 +109,64 @@ contract PostRegistry {
         if (p.author == address(0)) revert NoSuchPost();
         if (!hasLiked[id][msg.sender]) return;
 
-        hasLiked[id][msg.sender] = false;
+        // Recompute rather than remember: weightOf can only have risen since
+        // the like, and subtracting a larger value than was added would
+        // underflow.
+        //
+        // interactionCount is deliberately not decremented: affinity records
+        // that the interaction happened, not that it still stands.
+        _clearLike(p, id);
+    }
 
-        // Recompute rather than remember: weightOf can only have risen since the
-        // like, and subtracting a larger value than was added would underflow.
+    /**
+     * @notice Vote a post down.
+     *
+     * @dev Weighted exactly as likes are, which is the part that matters: an
+     *      unreachable account cannot bury anyone any more than it can promote
+     *      anyone. Without that, adding dislikes would have handed a ring a
+     *      weapon it did not previously have.
+     *
+     *      Reddit's Best and Controversial sorts are meaningless without this
+     *      signal — one is a confidence interval over agreement, the other is
+     *      a measure of disagreement.
+     */
+    function dislike(uint256 id) external {
+        Post storage p = _posts[id];
+        if (p.author == address(0)) revert NoSuchPost();
+        if (hasDisliked[id][msg.sender]) return;
+
+        if (hasLiked[id][msg.sender]) _clearLike(p, id);
+
+        hasDisliked[id][msg.sender] = true;
+        uint32 weight = graph.weightOf(msg.sender);
+
+        p.dislikeCount += 1;
+        p.weightedDislikes += weight;
+        interactionCount[msg.sender][p.author] += 1;
+
+        emit Disliked(id, msg.sender, weight);
+    }
+
+    function undislike(uint256 id) external {
+        Post storage p = _posts[id];
+        if (p.author == address(0)) revert NoSuchPost();
+        if (!hasDisliked[id][msg.sender]) return;
+        _clearDislike(p, id);
+    }
+
+    function _clearLike(Post storage p, uint256 id) private {
+        hasLiked[id][msg.sender] = false;
         uint32 weight = graph.weightOf(msg.sender);
         p.likeCount -= 1;
         p.weightedLikes = weight > p.weightedLikes ? 0 : p.weightedLikes - weight;
-
-        // interactionCount is deliberately not decremented: affinity records
-        // that the interaction happened, not that it still stands.
-
         emit Unliked(id, msg.sender);
+    }
+
+    function _clearDislike(Post storage p, uint256 id) private {
+        hasDisliked[id][msg.sender] = false;
+        uint32 weight = graph.weightOf(msg.sender);
+        p.dislikeCount -= 1;
+        p.weightedDislikes = weight > p.weightedDislikes ? 0 : p.weightedDislikes - weight;
+        emit Undisliked(id, msg.sender);
     }
 }

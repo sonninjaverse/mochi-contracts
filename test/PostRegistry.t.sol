@@ -183,4 +183,108 @@ contract PostRegistryTest is Test {
         PostRegistry.Post[] memory got = posts.postsOf(ids);
         assertEq(got[0].author, address(0));
     }
+
+    function test_DislikeIncrementsBothCounters() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        address bob = address(0xB0B);
+        vm.prank(alice);
+        graph.follow(bob); // depth 1, weight 100
+
+        vm.prank(bob);
+        posts.dislike(id);
+
+        PostRegistry.Post memory p = posts.postOf(id);
+        assertEq(p.dislikeCount, 1);
+        assertEq(p.weightedDislikes, 100);
+        assertTrue(posts.hasDisliked(id, bob));
+    }
+
+    /// The property that makes dislikes safe to add: a ring can no more bury
+    /// someone than it can promote them.
+    function test_UnreachedDislikerAddsNoWeight() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        vm.prank(address(0x5117));
+        posts.dislike(id);
+
+        PostRegistry.Post memory p = posts.postOf(id);
+        assertEq(p.dislikeCount, 1);
+        assertEq(p.weightedDislikes, 0);
+    }
+
+    /// A vote is one direction at a time, as on Reddit.
+    function test_LikingAfterDislikingWithdrawsTheDislike() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        address bob = address(0xB0B);
+        vm.prank(alice);
+        graph.follow(bob);
+
+        vm.startPrank(bob);
+        posts.dislike(id);
+        posts.like(id);
+        vm.stopPrank();
+
+        PostRegistry.Post memory p = posts.postOf(id);
+        assertEq(p.likeCount, 1);
+        assertEq(p.dislikeCount, 0);
+        assertEq(p.weightedLikes, 100);
+        assertEq(p.weightedDislikes, 0);
+        assertFalse(posts.hasDisliked(id, bob));
+    }
+
+    function test_DislikingAfterLikingWithdrawsTheLike() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        address bob = address(0xB0B);
+        vm.prank(alice);
+        graph.follow(bob);
+
+        vm.startPrank(bob);
+        posts.like(id);
+        posts.dislike(id);
+        vm.stopPrank();
+
+        PostRegistry.Post memory p = posts.postOf(id);
+        assertEq(p.likeCount, 0);
+        assertEq(p.dislikeCount, 1);
+    }
+
+    function test_UndislikeReverses() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        vm.startPrank(alice);
+        posts.dislike(id);
+        posts.undislike(id);
+        vm.stopPrank();
+
+        PostRegistry.Post memory p = posts.postOf(id);
+        assertEq(p.dislikeCount, 0);
+        assertEq(p.weightedDislikes, 0);
+        assertFalse(posts.hasDisliked(id, alice));
+    }
+
+    function test_DoubleDislikeIsNoop() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        vm.startPrank(alice);
+        posts.dislike(id);
+        posts.dislike(id);
+        vm.stopPrank();
+
+        assertEq(posts.postOf(id).dislikeCount, 1);
+    }
+
+    function test_DislikingNonexistentPostReverts() public {
+        vm.prank(alice);
+        vm.expectRevert(PostRegistry.NoSuchPost.selector);
+        posts.dislike(999);
+    }
 }
