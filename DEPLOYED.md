@@ -59,8 +59,9 @@ The indexer plan assumed roughly 24 MON. At 102 gwei the real figure is:
                               ~110 MON
 ```
 
-**About 4.5x the plan's estimate.** Check the faucet limit before committing to
-this volume; halving posts and likes brings it to roughly 55 MON.
+**About 4.5x the plan's estimate**, but the deployer wallet holds 209 MON as of
+2026-09-14, so the full volume is affordable with room to regenerate the data
+several times. No need to cut the seed data down.
 
 Note also that "sub-cent fees" in the spec is a claim about mainnet economics
 and has not been verified. On testnet the gas price is 102 gwei, which is not
