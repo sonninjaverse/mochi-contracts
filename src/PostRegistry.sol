@@ -9,6 +9,7 @@ import {SocialGraph} from "./SocialGraph.sol";
 ///      are stored, which is what keeps a post down to two slots.
 contract PostRegistry {
     error EmptyText();
+    error NoSuchPost();
 
     struct Post {
         // --- slot 1 ---
@@ -29,7 +30,17 @@ contract PostRegistry {
 
     mapping(uint256 => Post) private _posts;
 
+    mapping(uint256 => mapping(address => bool)) public hasLiked;
+
+    /// @notice How many times `from` has engaged with content by `to`.
+    /// @dev Written at like time so ranking can read affinity in O(1) instead
+    ///      of scanning history. One extra SSTORE per like buys a cheap read on
+    ///      every feed load, and reads vastly outnumber writes.
+    mapping(address => mapping(address => uint32)) public interactionCount;
+
     event PostCreated(uint256 indexed id, address indexed author, uint48 createdAt, string text);
+    event Liked(uint256 indexed id, address indexed account, uint32 weight);
+    event Unliked(uint256 indexed id, address indexed account);
 
     constructor(SocialGraph graph_) {
         graph = graph_;
@@ -54,5 +65,48 @@ contract PostRegistry {
         });
 
         emit PostCreated(id, msg.sender, uint48(block.timestamp), text);
+    }
+
+    /// @dev Ranking reads up to 500 candidates per call. One batched read beats
+    ///      500 external calls and keeps rank latency flat as the window grows.
+    function postsOf(uint256[] calldata ids) external view returns (Post[] memory out) {
+        out = new Post[](ids.length);
+        for (uint256 i; i < ids.length; ++i) {
+            out[i] = _posts[ids[i]];
+        }
+    }
+
+    function like(uint256 id) external {
+        Post storage p = _posts[id];
+        if (p.author == address(0)) revert NoSuchPost();
+        if (hasLiked[id][msg.sender]) return;
+
+        hasLiked[id][msg.sender] = true;
+        uint32 weight = graph.weightOf(msg.sender);
+
+        p.likeCount += 1;
+        p.weightedLikes += weight;
+        interactionCount[msg.sender][p.author] += 1;
+
+        emit Liked(id, msg.sender, weight);
+    }
+
+    function unlike(uint256 id) external {
+        Post storage p = _posts[id];
+        if (p.author == address(0)) revert NoSuchPost();
+        if (!hasLiked[id][msg.sender]) return;
+
+        hasLiked[id][msg.sender] = false;
+
+        // Recompute rather than remember: weightOf can only have risen since the
+        // like, and subtracting a larger value than was added would underflow.
+        uint32 weight = graph.weightOf(msg.sender);
+        p.likeCount -= 1;
+        p.weightedLikes = weight > p.weightedLikes ? 0 : p.weightedLikes - weight;
+
+        // interactionCount is deliberately not decremented: affinity records
+        // that the interaction happened, not that it still stands.
+
+        emit Unliked(id, msg.sender);
     }
 }

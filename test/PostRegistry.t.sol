@@ -69,4 +69,118 @@ contract PostRegistryTest is Test {
         assertEq(p.replyCount, 0);
         assertEq(p.parentId, 0);
     }
+
+    function test_LikeIncrementsBothCounters() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        address bob = address(0xB0B);
+        vm.prank(alice);
+        graph.follow(bob); // bob reaches depth 1, weight 100
+
+        vm.prank(bob);
+        posts.like(id);
+
+        PostRegistry.Post memory p = posts.postOf(id);
+        assertEq(p.likeCount, 1);
+        assertEq(p.weightedLikes, 100);
+        assertTrue(posts.hasLiked(id, bob));
+    }
+
+    /// @dev The whole point of weightedLikes: an unreachable account can like,
+    ///      and the raw count moves, but it contributes no discovery weight.
+    function test_UnreachedLikerAddsNoWeight() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        address sybil = address(0x5117);
+        vm.prank(sybil);
+        posts.like(id);
+
+        PostRegistry.Post memory p = posts.postOf(id);
+        assertEq(p.likeCount, 1);
+        assertEq(p.weightedLikes, 0);
+    }
+
+    function test_DoubleLikeIsNoop() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        vm.startPrank(alice);
+        posts.like(id);
+        posts.like(id);
+        vm.stopPrank();
+
+        assertEq(posts.postOf(id).likeCount, 1);
+    }
+
+    function test_UnlikeReversesBothCounters() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        vm.startPrank(alice);
+        posts.like(id);
+        posts.unlike(id);
+        vm.stopPrank();
+
+        PostRegistry.Post memory p = posts.postOf(id);
+        assertEq(p.likeCount, 0);
+        assertEq(p.weightedLikes, 0);
+        assertFalse(posts.hasLiked(id, alice));
+    }
+
+    function test_LikeRecordsInteractionTowardAuthor() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        address bob = address(0xB0B);
+        vm.prank(bob);
+        posts.like(id);
+
+        assertEq(posts.interactionCount(bob, alice), 1);
+    }
+
+    /// @dev Unliking must not rewrite history: affinity reflects that the
+    ///      interaction happened, not whether the like currently stands.
+    function test_UnlikeDoesNotDecrementInteraction() public {
+        vm.prank(alice);
+        uint256 id = posts.post("a");
+
+        address bob = address(0xB0B);
+        vm.startPrank(bob);
+        posts.like(id);
+        posts.unlike(id);
+        vm.stopPrank();
+
+        assertEq(posts.interactionCount(bob, alice), 1);
+    }
+
+    function test_LikingNonexistentPostReverts() public {
+        vm.prank(alice);
+        vm.expectRevert(PostRegistry.NoSuchPost.selector);
+        posts.like(999);
+    }
+
+    function test_PostsOfReturnsAllInOrder() public {
+        vm.startPrank(alice);
+        uint256 a = posts.post("a");
+        uint256 b = posts.post("b");
+        vm.stopPrank();
+
+        uint256[] memory ids = new uint256[](2);
+        ids[0] = b;
+        ids[1] = a;
+
+        PostRegistry.Post[] memory got = posts.postsOf(ids);
+        assertEq(got.length, 2);
+        assertEq(got[0].author, alice);
+        assertEq(got[1].createdAt, posts.postOf(a).createdAt);
+    }
+
+    function test_PostsOfWithUnknownIdReturnsEmptyStruct() public view {
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = 12345;
+        PostRegistry.Post[] memory got = posts.postsOf(ids);
+        assertEq(got[0].author, address(0));
+    }
 }
