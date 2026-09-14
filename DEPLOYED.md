@@ -7,19 +7,19 @@
 
 | Contract | Address |
 |---|---|
-| SocialGraph | `0x9ff3c817bd6c65ef2ed148de815a4d87c7c79b92` |
-| IdentityRegistry | `0x1129f4115abd5bd3ee80de8de166fbbfe6f6cb24` |
-| PostRegistry | `0xa9428c768f9e4eca0e23dfd7c7e30eb807ccaad0` |
-| ChronoFeed | `0xf855f22f43644dc277cba0b4cec293ef302341b9` |
-| HotFeed | `0xfb6b96e9b195e567a1b18177e69d42476fb821f4` |
-| BestFeed | `0x6c5b4e6a43775e61119a2fd5ae047351af1fe142` |
-| ControversialFeed | `0x6ef0bcfd4fc24ed2562b38ae6f7f778d348446f9` |
-| FollowFeed | `0x1cfc28e483ba14ce4b0d20523ab8d9da2f501aed` |
-| AffinityFeed | `0x1b7f955ea04d505342b832943a31777c64c4341c` |
-| SerendipityFeed | `0x77c4eb442a65cb3e5088ea1d006a324188dfeec6` |
-| DiscoveryFeed | `0x0cdf94ce85fa2896ef833d433e7e6013a07a472b` |
-| ParametricFeed | `0x5bb35dd0c83d34042145572b9fd5e76c96034b8f` |
-| AlgorithmRegistry | `0x80de7271bc24493bf8e9ccba00313059302564ac` |
+| SocialGraph | `0x7a3f704ae7e12c0f1baa79905ac045199a366ef8` |
+| IdentityRegistry | `0x6b9a453075f00bc17b515061aaff7d710dd42953` |
+| PostRegistry | `0x7fab7facb68992c84efa942e2052ea33e9073cf4` |
+| ChronoFeed | `0x92a0b888b0a026a340c44926d1dcbc8951b06c2c` |
+| HotFeed | `0x6eb6e878b58a27f115fb9979a882834360f06362` |
+| BestFeed | `0x0f8badfe3de0d479580ea56ac3fdb571141e53df` |
+| ControversialFeed | `0xe2f9cff336d73af0d15db6b26dad21a76e44c83e` |
+| FollowFeed | `0x95738e88cd1a46c2cf7b1f2e6adca789aa2efabc` |
+| AffinityFeed | `0xd95d34e3eac7faf4bd5fe05bdb98ae5cbe12cc51` |
+| SerendipityFeed | `0x699d108cfda5d9fe9d79e864001fa29f598bf9d3` |
+| DiscoveryFeed | `0x866133cd8f6f0cd8c948453b697d385cebbdc67c` |
+| ParametricFeed | `0xbc4078fe1e9fe6926d77f19f013c63268f18a43b` |
+| AlgorithmRegistry | `0x02b2268761ccb1ab5b26751f517448b3b866b6af` |
 
 Default feed slot: HotFeed. Default explore slot: DiscoveryFeed.
 Six algorithms registered. No contract has an admin function.
