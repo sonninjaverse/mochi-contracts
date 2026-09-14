@@ -24,6 +24,11 @@
 Default feed slot: HotFeed. Default explore slot: DiscoveryFeed.
 Nine algorithms registered. No contract has an admin function.
 
+`NetVotesFeed` at `0x2B99faEEa7369c998e81635486FD6A28C952CA30` is the worked
+example from [docs/writing-an-algorithm.md](../docs/writing-an-algorithm.md).
+Deployed, deliberately **not** registered: it is there to be pasted into the
+feed control the way a stranger's algorithm would be.
+
 ## Verified on chain
 
 ```
