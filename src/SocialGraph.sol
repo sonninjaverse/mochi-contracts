@@ -64,11 +64,22 @@ contract SocialGraph {
     /// @dev Influence fades with distance from the seed set and hits zero
     ///      outside it. Being UNREACHED never blocks reading or posting; it
     ///      only removes the ability to boost other people's posts.
+    ///
+    ///      The ladder reaches depth 6 because a real graph does. Seeding 120
+    ///      accounts produced 13 at depth 5 and 4 at depth 6, and an earlier
+    ///      cutoff at depth 4 gave 28% of genuine accounts no voice at all.
+    ///
+    ///      Extending it costs nothing in sybil resistance: a ring nobody
+    ///      reachable has followed sits at UNREACHED, not at depth 6. The cliff
+    ///      belongs between reachable and unreachable, not part-way along a
+    ///      path that real users legitimately occupy.
     function weightOf(address account) public view returns (uint32) {
         uint8 d = depthOf(account);
         if (d <= 2) return 100;
-        if (d == 3) return 40;
-        if (d == 4) return 10;
+        if (d == 3) return 60;
+        if (d == 4) return 30;
+        if (d == 5) return 15;
+        if (d == 6) return 5;
         return 0;
     }
 

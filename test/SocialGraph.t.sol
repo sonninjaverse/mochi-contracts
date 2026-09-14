@@ -84,7 +84,7 @@ contract SocialGraphTest is Test {
         assertEq(g.depthOf(c), 2);
         assertEq(g.depthOf(d), 3);
         assertEq(g.weightOf(bob), 100);
-        assertEq(g.weightOf(d), 40);
+        assertEq(g.weightOf(d), 60);
     }
 
     function test_UnreachedAccountHasZeroWeight() public view {
@@ -174,5 +174,54 @@ contract SocialGraphTest is Test {
         address c = address(0xC);
         g.refresh(c, alice); // alice never followed c
         assertEq(g.depthOf(c), g.UNREACHED());
+    }
+
+    /// @dev The ladder reaches depth 6 because real graphs do. What matters is
+    ///      that extending it does not soften the sybil defence: a ring sits at
+    ///      UNREACHED, which is not on the ladder at all.
+    function test_WeightLadderReachesDepthSixThenStops() public {
+        address[] memory seeds = new address[](1);
+        seeds[0] = alice;
+        SocialGraph g = new SocialGraph(seeds);
+
+        // Build a chain alice -> a1 -> a2 -> ... so each link is one deeper.
+        address prev = alice;
+        address[] memory chain = new address[](8);
+        for (uint256 i; i < 8; ++i) {
+            chain[i] = address(uint160(0xC4A1000 + i));
+            vm.prank(prev);
+            g.follow(chain[i]);
+            prev = chain[i];
+        }
+
+        assertEq(g.weightOf(chain[0]), 100); // depth 1
+        assertEq(g.weightOf(chain[1]), 100); // depth 2
+        assertEq(g.weightOf(chain[2]), 60); // depth 3
+        assertEq(g.weightOf(chain[3]), 30); // depth 4
+        assertEq(g.weightOf(chain[4]), 15); // depth 5
+        assertEq(g.weightOf(chain[5]), 5); // depth 6
+        assertEq(g.weightOf(chain[6]), 0); // depth 7, off the ladder
+    }
+
+    /// @dev The property the extension must not break.
+    function test_ExtendedLadderStillGivesRingZero() public {
+        address[] memory seeds = new address[](1);
+        seeds[0] = alice;
+        SocialGraph g = new SocialGraph(seeds);
+
+        address[] memory ring = new address[](30);
+        for (uint256 i; i < 30; ++i) ring[i] = address(uint160(0x5117000 + i));
+        for (uint256 i; i < 30; ++i) {
+            vm.startPrank(ring[i]);
+            for (uint256 j; j < 30; ++j) {
+                if (i != j) g.follow(ring[j]);
+            }
+            vm.stopPrank();
+        }
+
+        for (uint256 i; i < 30; ++i) {
+            assertEq(g.depthOf(ring[i]), g.UNREACHED());
+            assertEq(g.weightOf(ring[i]), 0);
+        }
     }
 }
