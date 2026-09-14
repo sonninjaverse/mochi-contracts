@@ -22,7 +22,7 @@
 | AlgorithmRegistry | `0x02b2268761ccb1ab5b26751f517448b3b866b6af` |
 
 Default feed slot: HotFeed. Default explore slot: DiscoveryFeed.
-Six algorithms registered. No contract has an admin function.
+Nine algorithms registered. No contract has an admin function.
 
 ## Verified on chain
 
