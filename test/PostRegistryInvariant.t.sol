@@ -15,7 +15,7 @@ contract LikeHandler is Test {
         posts = posts_;
         for (uint256 i; i < 10; ++i) actors.push(address(uint160(0xAC70000 + i)));
         vm.startPrank(author);
-        for (uint256 i; i < 3; ++i) posts.post("p");
+        for (uint256 i; i < 3; ++i) posts.post("p", "");
         vm.stopPrank();
         postCount = 3;
     }

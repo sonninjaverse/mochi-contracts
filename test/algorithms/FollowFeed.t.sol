@@ -27,9 +27,9 @@ contract FollowFeedTest is Test {
 
     function test_OnlyFollowedAuthorsScore() public {
         vm.prank(stranger);
-        uint256 s = posts.post("from a stranger");
+        uint256 s = posts.post("from a stranger", "");
         vm.prank(followed);
-        uint256 f = posts.post("from someone followed");
+        uint256 f = posts.post("from someone followed", "");
 
         uint256[] memory ids = new uint256[](2);
         ids[0] = s;
@@ -43,10 +43,10 @@ contract FollowFeedTest is Test {
 
     function test_NewerFollowedPostOutranksOlder() public {
         vm.prank(followed);
-        uint256 older = posts.post("old");
+        uint256 older = posts.post("old", "");
         vm.warp(block.timestamp + 1 days);
         vm.prank(followed);
-        uint256 newer = posts.post("new");
+        uint256 newer = posts.post("new", "");
 
         uint256[] memory ids = new uint256[](2);
         ids[0] = older;
@@ -60,7 +60,7 @@ contract FollowFeedTest is Test {
     ///      it is precisely what this algorithm means. The UI must say so.
     function test_ViewerFollowingNobodyScoresEverythingZero() public {
         vm.prank(followed);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         uint256[] memory ids = new uint256[](1);
         ids[0] = id;

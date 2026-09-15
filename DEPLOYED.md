@@ -1,30 +1,34 @@
 # Deployed contracts — Monad testnet
 
-**Chain id 10143 · redeployed 2026-09-14 · explorer https://testnet.monadscan.com**
+**Chain id 10143 · redeployed 2026-09-15 · explorer https://testnet.monadscan.com**
+
+Every contract below is verified on Sourcify with an `exact_match` on both
+creation and runtime bytecode, so the source can be read without cloning:
+`https://repo.sourcify.dev/10143/<address>/`
 
 > **Seed set: 31 anchors** — the deployer plus thirty team-controlled wallets
 > with invented handles. Immutable once deployed.
 
 | Contract | Address |
 |---|---|
-| SocialGraph | `0x7a3f704ae7e12c0f1baa79905ac045199a366ef8` |
-| IdentityRegistry | `0x6b9a453075f00bc17b515061aaff7d710dd42953` |
-| PostRegistry | `0x7fab7facb68992c84efa942e2052ea33e9073cf4` |
-| ChronoFeed | `0x92a0b888b0a026a340c44926d1dcbc8951b06c2c` |
-| HotFeed | `0x6eb6e878b58a27f115fb9979a882834360f06362` |
-| BestFeed | `0x0f8badfe3de0d479580ea56ac3fdb571141e53df` |
-| ControversialFeed | `0xe2f9cff336d73af0d15db6b26dad21a76e44c83e` |
-| FollowFeed | `0x95738e88cd1a46c2cf7b1f2e6adca789aa2efabc` |
-| AffinityFeed | `0xd95d34e3eac7faf4bd5fe05bdb98ae5cbe12cc51` |
-| SerendipityFeed | `0x699d108cfda5d9fe9d79e864001fa29f598bf9d3` |
-| DiscoveryFeed | `0x866133cd8f6f0cd8c948453b697d385cebbdc67c` |
-| ParametricFeed | `0xbc4078fe1e9fe6926d77f19f013c63268f18a43b` |
-| AlgorithmRegistry | `0x02b2268761ccb1ab5b26751f517448b3b866b6af` |
+| SocialGraph | `0x7d11e04ccf5de28a3bdbe116714dc92e08d37cd6` |
+| IdentityRegistry | `0xa788bcbd7b09d5caaa93b4b69516dc2ac89d277b` |
+| PostRegistry | `0xed65a47a6622a65ba5fb0fc184798195036047df` |
+| ChronoFeed | `0x79e74b0065f2461eb2ba874ba389a3e05fa4ac88` |
+| HotFeed | `0xc05f6443567dd8bad273160880ba5a5707803708` |
+| BestFeed | `0x595f2a29e5859f4870bb0eb2c6a3f15788b7eac3` |
+| ControversialFeed | `0x277d58051cd879e14136651e1aa59197c13d3dbf` |
+| FollowFeed | `0x37fb3fcbf5e65f768d0ff319d0dbc17d68f8dbf9` |
+| AffinityFeed | `0x65e4e505b6e5ac839802e6e8b0bfb17fb5a88323` |
+| SerendipityFeed | `0x129c6498d932b18aa7d0b5af024439785161a34e` |
+| DiscoveryFeed | `0x8bf646f66af7b96a2d1da54662dff9e0150cbbda` |
+| ParametricFeed | `0xa656c8571b54d6f46416225acdf624f505d92444` |
+| AlgorithmRegistry | `0x3f5cee8729bae8a0aa011332a3108c68cbb5b7e1` |
 
 Default feed slot: HotFeed. Default explore slot: DiscoveryFeed.
 Nine algorithms registered. No contract has an admin function.
 
-`NetVotesFeed` at `0x2B99faEEa7369c998e81635486FD6A28C952CA30` is the worked
+`NetVotesFeed` at `0x8ffDad83C6c3e6bbf50088D46DaC87C9B8547601` is the worked
 example from [docs/writing-an-algorithm.md](../docs/writing-an-algorithm.md).
 Deployed, deliberately **not** registered: it is there to be pasted into the
 feed control the way a stranger's algorithm would be.

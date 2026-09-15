@@ -5,7 +5,7 @@ nothing about that choice needs our permission: deploy yours, paste its address
 into the feed control, and the feed reorders. This page is how.
 
 Everything below has been run. The example is deployed at
-`0x2B99faEEa7369c998e81635486FD6A28C952CA30` on Monad testnet, and you can point
+`0x8ffDad83C6c3e6bbf50088D46DaC87C9B8547601` on Monad testnet, and you can point
 the feed at it right now to see what a third-party algorithm looks like from the
 inside of the product.
 
@@ -53,19 +53,19 @@ feed.rank(address(0), unknown);
 Two contracts hold everything the shipped algorithms use. Both are plain public
 state — nothing is hidden from you that is available to us.
 
-**`PostRegistry`** — [`0x7fAB7facB68992c84efa942e2052Ea33E9073Cf4`](https://testnet.monadscan.com/address/0x7fAB7facB68992c84efa942e2052Ea33E9073Cf4)
+**`PostRegistry`** — [`0xed65a47a6622a65ba5fb0fc184798195036047df`](https://testnet.monadscan.com/address/0xed65a47a6622a65ba5fb0fc184798195036047df)
 
 ```solidity
 struct Post {
     address author;
     uint48 createdAt;        // unix seconds
-    uint48 parentId;         // reserved for replies
+    uint48 parentId;         // 0 for a post, else the post it replies to
     uint32 likeCount;        // raw
     uint32 weightedLikes;    // filtered by the social graph
     uint32 dislikeCount;     // raw
     uint32 weightedDislikes; // filtered the same way
     uint32 repostCount;      // reserved
-    uint32 replyCount;       // reserved
+    uint32 replyCount;
 }
 
 function postsOf(uint256[] calldata ids) external view returns (Post[] memory);
@@ -76,7 +76,7 @@ Use `postsOf` for the candidate set. Calling `postOf` in a loop turns one
 `eth_call` into hundreds of separate storage reads and is the usual reason an
 algorithm trips the 4-second budget.
 
-**`SocialGraph`** — [`0x7A3F704ae7e12C0f1BaA79905Ac045199a366Ef8`](https://testnet.monadscan.com/address/0x7A3F704ae7e12C0f1BaA79905Ac045199a366Ef8)
+**`SocialGraph`** — [`0x7d11e04ccf5de28a3bdbe116714dc92e08d37cd6`](https://testnet.monadscan.com/address/0x7d11e04ccf5de28a3bdbe116714dc92e08d37cd6)
 
 ```solidity
 function weightOf(address account) external view returns (uint32); // 0-100
@@ -95,6 +95,14 @@ is built to exploit.** On the seeded network a hundred ring wallets gave five
 posts ninety-nine likes each; those posts carry `weightedLikes` of zero and do
 not appear in Explore's top twenty. An algorithm that read `likeCount` would put
 them first.
+
+### Replies
+
+`parentId` is 0 for a top-level post and otherwise the post being answered.
+The client's candidate sources already drop replies before they reach you, so
+an algorithm does not have to filter them — but a client that does not is
+entitled to send them, and scoring them as though they were posts is the
+mistake to avoid.
 
 ## A complete example
 
@@ -135,7 +143,7 @@ forge create src/examples/NetVotesFeed.sol:NetVotesFeed \
   --rpc-url https://testnet-rpc.monad.xyz \
   --private-key "$PRIVATE_KEY" \
   --broadcast \
-  --constructor-args 0x7fAB7facB68992c84efa942e2052Ea33E9073Cf4
+  --constructor-args 0xed65a47a6622a65ba5fb0fc184798195036047df
 ```
 
 **`forge create` may print `Error: contract was not deployed` when the contract
@@ -160,7 +168,7 @@ for the session.
 To make it stick, register it once and set it as your default:
 
 ```bash
-# AlgorithmRegistry 0x02b2268761Ccb1Ab5b26751F517448b3B866b6Af
+# AlgorithmRegistry 0x3f5cee8729bae8a0aa011332a3108c68cbb5b7e1
 cast send $REGISTRY "register(address)" $YOUR_ALGORITHM \
   --rpc-url https://testnet-rpc.monad.xyz --private-key "$PRIVATE_KEY"
 
@@ -196,10 +204,10 @@ shows an unranked list and you will not be told why — which is exactly why rul
 
 | Contract | Address |
 |---|---|
-| PostRegistry | `0x7fAB7facB68992c84efa942e2052Ea33E9073Cf4` |
-| SocialGraph | `0x7A3F704ae7e12C0f1BaA79905Ac045199a366Ef8` |
-| AlgorithmRegistry | `0x02b2268761Ccb1Ab5b26751F517448b3B866b6Af` |
-| NetVotesFeed (this example) | `0x2B99faEEa7369c998e81635486FD6A28C952CA30` |
+| PostRegistry | `0xed65a47a6622a65ba5fb0fc184798195036047df` |
+| SocialGraph | `0x7d11e04ccf5de28a3bdbe116714dc92e08d37cd6` |
+| AlgorithmRegistry | `0x3f5cee8729bae8a0aa011332a3108c68cbb5b7e1` |
+| NetVotesFeed (this example) | `0x8ffDad83C6c3e6bbf50088D46DaC87C9B8547601` |
 
 Chain id 10143, RPC `https://testnet-rpc.monad.xyz`, explorer
 [testnet.monadscan.com](https://testnet.monadscan.com).

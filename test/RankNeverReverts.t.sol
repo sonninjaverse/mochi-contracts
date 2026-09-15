@@ -39,7 +39,7 @@ contract RankNeverRevertsTest is Test {
         graph.follow(author);
         for (uint256 i; i < 5; ++i) {
             vm.prank(author);
-            posts.post("a post");
+            posts.post("a post", "");
         }
     }
 
@@ -71,7 +71,7 @@ contract RankNeverRevertsTest is Test {
     /// @dev A post timestamped in the future must not underflow the age maths.
     function test_NoAlgorithmRevertsOnFutureTimestamp() public {
         vm.prank(author);
-        uint256 id = posts.post("from the future");
+        uint256 id = posts.post("from the future", "");
 
         uint256[] memory ids = new uint256[](1);
         ids[0] = id;

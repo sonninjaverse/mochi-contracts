@@ -15,7 +15,7 @@ contract PostRegistry {
         // --- slot 1 ---
         address author; // 160 bits
         uint48 createdAt; // 48 bits
-        uint48 parentId; // 48 bits, reserved for replies in a later version
+        uint48 parentId; // 0 for a top-level post, else the post replied to
         // --- slot 2 ---
         uint32 likeCount; // raw likes
         uint32 weightedLikes; // likes filtered by SocialGraph.weightOf
@@ -23,7 +23,7 @@ contract PostRegistry {
         uint32 dislikeCount; // raw dislikes
         uint32 weightedDislikes; // dislikes filtered the same way
         uint32 repostCount; // reserved
-        uint32 replyCount; // reserved
+        uint32 replyCount;
     }
 
     SocialGraph public immutable graph;
@@ -42,7 +42,17 @@ contract PostRegistry {
     ///      every feed load, and reads vastly outnumber writes.
     mapping(address => mapping(address => uint32)) public interactionCount;
 
-    event PostCreated(uint256 indexed id, address indexed author, uint48 createdAt, string text);
+    /// @dev parentId and mediaURI ride along here rather than in storage.
+    ///      Only parentId is also stored, because ranking has to be able to
+    ///      tell a reply from a post; nothing ranks on an image URI.
+    event PostCreated(
+        uint256 indexed id,
+        address indexed author,
+        uint48 createdAt,
+        uint48 parentId,
+        string text,
+        string mediaURI
+    );
     event Liked(uint256 indexed id, address indexed account, uint32 weight);
     event Unliked(uint256 indexed id, address indexed account);
     event Disliked(uint256 indexed id, address indexed account, uint32 weight);
@@ -56,14 +66,41 @@ contract PostRegistry {
         return _posts[id];
     }
 
-    function post(string calldata text) external returns (uint256 id) {
-        if (bytes(text).length == 0) revert EmptyText();
+    /// @param mediaURI Empty, or a content address such as `ipfs://<cid>`.
+    ///        Never fetched on chain and never stored — the client resolves it.
+    function post(string calldata text, string calldata mediaURI)
+        external
+        returns (uint256 id)
+    {
+        return _create(text, mediaURI, 0);
+    }
+
+    /// @notice Replies to `parentId`, which may itself be a reply.
+    /// @dev Only the direct parent is stored. Threading is a reading decision,
+    ///      and storing a root as well would be a second thing to keep true.
+    function reply(uint48 parentId, string calldata text, string calldata mediaURI)
+        external
+        returns (uint256 id)
+    {
+        Post storage parent = _posts[parentId];
+        if (parent.author == address(0)) revert NoSuchPost();
+
+        id = _create(text, mediaURI, parentId);
+        parent.replyCount += 1;
+    }
+
+    function _create(string calldata text, string calldata mediaURI, uint48 parentId)
+        private
+        returns (uint256 id)
+    {
+        // An image on its own is a post. Nothing at all is not.
+        if (bytes(text).length == 0 && bytes(mediaURI).length == 0) revert EmptyText();
 
         id = nextPostId++;
         _posts[id] = Post({
             author: msg.sender,
             createdAt: uint48(block.timestamp),
-            parentId: 0,
+            parentId: parentId,
             likeCount: 0,
             weightedLikes: 0,
             dislikeCount: 0,
@@ -72,7 +109,7 @@ contract PostRegistry {
             replyCount: 0
         });
 
-        emit PostCreated(id, msg.sender, uint48(block.timestamp), text);
+        emit PostCreated(id, msg.sender, uint48(block.timestamp), parentId, text, mediaURI);
     }
 
     /// @dev Ranking reads up to 500 candidates per call. One batched read beats

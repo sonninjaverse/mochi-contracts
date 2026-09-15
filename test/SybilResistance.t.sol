@@ -53,7 +53,7 @@ contract SybilResistanceTest is Test {
 
         // The ring posts, then likes its own content.
         vm.prank(ringLeader);
-        uint256 spam = posts.post("buy my token");
+        uint256 spam = posts.post("buy my token", "");
         for (uint256 i = 1; i < 100; ++i) {
             vm.prank(ring[i]);
             posts.like(spam);
@@ -61,7 +61,7 @@ contract SybilResistanceTest is Test {
 
         // A genuine post with a single genuine like.
         vm.prank(realUser);
-        uint256 honest = posts.post("a real post");
+        uint256 honest = posts.post("a real post", "");
         vm.prank(seed);
         posts.like(honest);
 
@@ -94,13 +94,13 @@ contract SybilResistanceTest is Test {
         address judge = address(0x1D6E);
 
         vm.prank(realUser);
-        uint256 id = posts.post("something to read");
+        uint256 id = posts.post("something to read", "");
         vm.prank(seed);
         posts.like(id);
 
         // Can post.
         vm.prank(judge);
-        uint256 mine = posts.post("hello from a new account");
+        uint256 mine = posts.post("hello from a new account", "");
         assertEq(posts.postOf(mine).author, judge);
 
         // Can like, and the raw counter reflects it.

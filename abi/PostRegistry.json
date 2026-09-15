@@ -12,6 +12,19 @@
   },
   {
     "type": "function",
+    "name": "dislike",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "graph",
     "inputs": [],
     "outputs": [
@@ -19,6 +32,30 @@
         "name": "",
         "type": "address",
         "internalType": "contract SocialGraph"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "hasDisliked",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -105,6 +142,11 @@
         "name": "text",
         "type": "string",
         "internalType": "string"
+      },
+      {
+        "name": "mediaURI",
+        "type": "string",
+        "internalType": "string"
       }
     ],
     "outputs": [
@@ -154,6 +196,16 @@
           },
           {
             "name": "weightedLikes",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "dislikeCount",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "weightedDislikes",
             "type": "uint32",
             "internalType": "uint32"
           },
@@ -214,6 +266,16 @@
             "internalType": "uint32"
           },
           {
+            "name": "dislikeCount",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "weightedDislikes",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
             "name": "repostCount",
             "type": "uint32",
             "internalType": "uint32"
@@ -230,6 +292,48 @@
   },
   {
     "type": "function",
+    "name": "reply",
+    "inputs": [
+      {
+        "name": "parentId",
+        "type": "uint48",
+        "internalType": "uint48"
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "mediaURI",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "undislike",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "unlike",
     "inputs": [
       {
@@ -240,6 +344,31 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "Disliked",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "weight",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -289,10 +418,41 @@
         "internalType": "uint48"
       },
       {
+        "name": "parentId",
+        "type": "uint48",
+        "indexed": false,
+        "internalType": "uint48"
+      },
+      {
         "name": "text",
         "type": "string",
         "indexed": false,
         "internalType": "string"
+      },
+      {
+        "name": "mediaURI",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Undisliked",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       }
     ],
     "anonymous": false

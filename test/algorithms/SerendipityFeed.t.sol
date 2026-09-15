@@ -28,9 +28,9 @@ contract SerendipityFeedTest is Test {
         graph.follow(familiar);
 
         vm.prank(familiar);
-        uint256 known = posts.post("from someone you know");
+        uint256 known = posts.post("from someone you know", "");
         vm.prank(unknown);
-        uint256 fresh = posts.post("from someone new");
+        uint256 fresh = posts.post("from someone new", "");
 
         uint256[] memory ids = new uint256[](2);
         ids[0] = known;
@@ -49,9 +49,9 @@ contract SerendipityFeedTest is Test {
         graph.follow(liker); // give liker weight so weightedLikes moves
 
         vm.prank(unknown);
-        uint256 quiet = posts.post("quiet");
+        uint256 quiet = posts.post("quiet", "");
         vm.prank(familiar);
-        uint256 popular = posts.post("popular");
+        uint256 popular = posts.post("popular", "");
 
         vm.prank(liker);
         posts.like(popular);
@@ -67,7 +67,7 @@ contract SerendipityFeedTest is Test {
 
     function test_ViewerOwnPostsAreExcluded() public {
         vm.prank(viewer);
-        uint256 mine = posts.post("mine");
+        uint256 mine = posts.post("mine", "");
 
         uint256[] memory ids = new uint256[](1);
         ids[0] = mine;

@@ -62,6 +62,44 @@ never show you, because disagreement does not retain.
 **Discovery**, on Explore, drops the authors you already follow and ranks the
 rest by how fast their posts are spreading.
 
+## Replies
+
+A reply is a post with a parent, and the parent is in contract storage rather
+than only in the event. That is the difference that matters: a ranking
+contract has to be able to tell a reply from a post, because one that cannot
+would score a fragment of an argument against posts nobody can see it
+answering.
+
+Only the direct parent is stored. Threading is a reading decision, and a
+stored thread root would be a second thing to keep true.
+
+Replies are excluded from every candidate source, so they never reach a
+ranking contract at all — choosing what is considered is the indexer's one
+job, and this is exactly the kind of choice it exists to make. A conversation
+is shown in the order it happened, unranked: scoring it would turn an argument
+into a leaderboard.
+
+## Images
+
+A post can carry one image. The chain stores a content address — `ipfs://<cid>`
+— and never a URL, so the gateway that renders it is a decision the client
+makes and can change without touching a single post.
+
+The address rides in the event data alongside the text and never reaches
+storage, for the same reason the text does not: no ranking reads it, and a
+post costs the same whatever it shows.
+
+## Usernames
+
+A handle is a `bytes32`, so at most 31 bytes; the client narrows that to 15
+characters of lowercase letters, digits and underscore. The narrow alphabet is
+not tidiness — mixed case and lookalike characters are how impersonation
+starts on a network where the name is all most people read.
+
+Renaming frees the old name in the same call that takes the new one. Either
+order on its own would strand a name nobody can use or let one account hold
+two, and uniqueness is the only thing that contract exists to guarantee.
+
 ## Votes are weighted by the graph
 
 A like is not worth the same from everyone. Trust here is **distance from an

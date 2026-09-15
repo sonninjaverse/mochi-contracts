@@ -31,7 +31,7 @@ contract DiscoveryFeedTest is Test {
     /// @dev Explore is for finding people you do not already follow.
     function test_AlreadyFollowedAuthorsAreExcluded() public {
         vm.prank(followed);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
         vm.prank(liker);
         posts.like(id);
 
@@ -46,7 +46,7 @@ contract DiscoveryFeedTest is Test {
     ///      beat an older post that merely accumulated more.
     function test_FasterSpreadOutranksOlderWithMoreLikes() public {
         vm.prank(stranger);
-        uint256 old = posts.post("old but liked");
+        uint256 old = posts.post("old but liked", "");
         vm.prank(liker);
         posts.like(old);
 
@@ -58,7 +58,7 @@ contract DiscoveryFeedTest is Test {
         graph.follow(liker2);
 
         vm.prank(stranger2);
-        uint256 fresh = posts.post("new and liked");
+        uint256 fresh = posts.post("new and liked", "");
         vm.prank(liker2);
         posts.like(fresh);
 
@@ -72,7 +72,7 @@ contract DiscoveryFeedTest is Test {
 
     function test_PostsOlderThanWindowScoreZero() public {
         vm.prank(stranger);
-        uint256 id = posts.post("ancient");
+        uint256 id = posts.post("ancient", "");
         vm.prank(liker);
         posts.like(id);
 
@@ -89,7 +89,7 @@ contract DiscoveryFeedTest is Test {
     ///      still contributes nothing, because weightedLikes stays zero.
     function test_SybilLikesDoNotSurfacePost() public {
         vm.prank(stranger);
-        uint256 id = posts.post("sybil boosted");
+        uint256 id = posts.post("sybil boosted", "");
 
         for (uint256 i; i < 50; ++i) {
             vm.prank(address(uint160(0x5117000 + i)));

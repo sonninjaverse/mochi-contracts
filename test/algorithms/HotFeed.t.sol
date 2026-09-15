@@ -39,8 +39,8 @@ contract HotFeedTest is Test {
 
     function test_MoreVotesWinsAtEqualAge() public {
         vm.startPrank(author);
-        uint256 quiet = posts.post("quiet");
-        uint256 loud = posts.post("loud");
+        uint256 quiet = posts.post("quiet", "");
+        uint256 loud = posts.post("loud", "");
         vm.stopPrank();
 
         like(loud, 5);
@@ -61,13 +61,13 @@ contract HotFeedTest is Test {
      */
     function test_NewerPostBeatsOlderPostWithSimilarVotes() public {
         vm.prank(author);
-        uint256 old = posts.post("old");
+        uint256 old = posts.post("old", "");
         like(old, 8);
 
         vm.warp(block.timestamp + 13 hours);
 
         vm.prank(author);
-        uint256 fresh = posts.post("fresh");
+        uint256 fresh = posts.post("fresh", "");
         like(fresh, 8);
 
         uint256[] memory ids = new uint256[](2);
@@ -85,13 +85,13 @@ contract HotFeedTest is Test {
      */
     function test_TenTimesTheVotesBuysBackOneDecayStep() public {
         vm.prank(author);
-        uint256 old = posts.post("old");
+        uint256 old = posts.post("old", "");
         like(old, 30);
 
         vm.warp(block.timestamp + 12 hours);
 
         vm.prank(author);
-        uint256 fresh = posts.post("fresh");
+        uint256 fresh = posts.post("fresh", "");
         like(fresh, 3);
 
         uint256[] memory ids = new uint256[](2);
@@ -108,7 +108,7 @@ contract HotFeedTest is Test {
     /// One trusted like must count as one vote, not as its weight of 100.
     function test_VotesAreScaledToWholeVotes() public {
         vm.prank(author);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
         like(id, 10);
 
         uint256[] memory ids = new uint256[](1);
@@ -123,8 +123,8 @@ contract HotFeedTest is Test {
     /// exactly the behaviour a ring produces.
     function test_SybilLikesDoNotLift() public {
         vm.startPrank(author);
-        uint256 honest = posts.post("honest");
-        uint256 spam = posts.post("spam");
+        uint256 honest = posts.post("honest", "");
+        uint256 spam = posts.post("spam", "");
         vm.stopPrank();
 
         like(honest, 2);

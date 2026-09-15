@@ -22,9 +22,9 @@ contract ChronoFeedTest is Test {
 
     function test_NewestFirst() public {
         vm.startPrank(alice);
-        uint256 older = posts.post("old");
+        uint256 older = posts.post("old", "");
         vm.warp(block.timestamp + 100);
-        uint256 newer = posts.post("new");
+        uint256 newer = posts.post("new", "");
         vm.stopPrank();
 
         uint256[] memory ids = new uint256[](2);
@@ -44,7 +44,7 @@ contract ChronoFeedTest is Test {
 
     function test_UnknownIdScoresZeroAndDoesNotRevert() public {
         vm.prank(alice);
-        uint256 real = posts.post("a");
+        uint256 real = posts.post("a", "");
 
         uint256[] memory ids = new uint256[](2);
         ids[0] = 99999;

@@ -33,7 +33,7 @@ contract WilsonParityTest is Test {
 
     function scoreFor(uint256 ups, uint256 downs) internal returns (uint256) {
         vm.prank(author);
-        uint256 id = posts.post("x");
+        uint256 id = posts.post("x", "");
 
         for (uint256 i; i < ups + downs; ++i) {
             address a = address(uint160(nextVoter++));

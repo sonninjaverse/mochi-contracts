@@ -51,8 +51,8 @@ contract RedditSortsTest is Test {
      */
     function test_BestPrefersEvidenceOverAverage() public {
         vm.startPrank(author);
-        uint256 thin = posts.post("two likes, no dislikes");
-        uint256 thick = posts.post("ninety likes, ten dislikes");
+        uint256 thin = posts.post("two likes, no dislikes", "");
+        uint256 thick = posts.post("ninety likes, ten dislikes", "");
         vm.stopPrank();
 
         vote(thin, 2, 0);
@@ -68,7 +68,7 @@ contract RedditSortsTest is Test {
 
     function test_BestScoresNothingWithNoVotes() public {
         vm.prank(author);
-        uint256 id = posts.post("silent");
+        uint256 id = posts.post("silent", "");
 
         uint256[] memory ids = new uint256[](1);
         ids[0] = id;
@@ -79,8 +79,8 @@ contract RedditSortsTest is Test {
 
     function test_BestRisesWithMoreAgreement() public {
         vm.startPrank(author);
-        uint256 few = posts.post("few");
-        uint256 many = posts.post("many");
+        uint256 few = posts.post("few", "");
+        uint256 many = posts.post("many", "");
         vm.stopPrank();
 
         vote(few, 5, 1);
@@ -97,8 +97,8 @@ contract RedditSortsTest is Test {
     /// Agreement is not controversy, however loud.
     function test_ControversialIgnoresUnanimousPosts() public {
         vm.startPrank(author);
-        uint256 loved = posts.post("everyone agrees");
-        uint256 split = posts.post("nobody agrees");
+        uint256 loved = posts.post("everyone agrees", "");
+        uint256 split = posts.post("nobody agrees", "");
         vm.stopPrank();
 
         vote(loved, 40, 0);
@@ -115,8 +115,8 @@ contract RedditSortsTest is Test {
 
     function test_ControversialPrefersTheEvenerSplit() public {
         vm.startPrank(author);
-        uint256 lopsided = posts.post("mostly agreed");
-        uint256 even = posts.post("evenly split");
+        uint256 lopsided = posts.post("mostly agreed", "");
+        uint256 even = posts.post("evenly split", "");
         vm.stopPrank();
 
         vote(lopsided, 18, 2);
@@ -133,8 +133,8 @@ contract RedditSortsTest is Test {
     /// The property that made dislikes safe to add at all.
     function test_SybilDislikesCannotBury() public {
         vm.startPrank(author);
-        uint256 target = posts.post("targeted");
-        uint256 other = posts.post("other");
+        uint256 target = posts.post("targeted", "");
+        uint256 other = posts.post("other", "");
         vm.stopPrank();
 
         vote(target, 10, 0);

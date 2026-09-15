@@ -29,9 +29,9 @@ that is deployed and rankable today.
 
 | Contract | Address |
 |---|---|
-| SocialGraph | `0x7A3F704ae7e12C0f1BaA79905Ac045199a366Ef8` |
-| PostRegistry | `0x7fAB7facB68992c84efa942e2052Ea33E9073Cf4` |
-| AlgorithmRegistry | `0x02b2268761Ccb1Ab5b26751F517448b3B866b6Af` |
+| SocialGraph | `0x7d11e04ccf5de28a3bdbe116714dc92e08d37cd6` |
+| PostRegistry | `0xed65a47a6622a65ba5fb0fc184798195036047df` |
+| AlgorithmRegistry | `0x3f5cee8729bae8a0aa011332a3108c68cbb5b7e1` |
 
 Nine algorithms and the rest of the addresses are in [DEPLOYED.md](DEPLOYED.md).
 Chain id 10143.

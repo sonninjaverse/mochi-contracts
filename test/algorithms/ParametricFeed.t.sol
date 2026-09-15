@@ -56,9 +56,9 @@ contract ParametricFeedTest is Test {
         graph.follow(known);
 
         vm.prank(known);
-        uint256 familiarPost = posts.post("from someone you follow");
+        uint256 familiarPost = posts.post("from someone you follow", "");
         vm.prank(unknown);
-        uint256 strangePost = posts.post("from a stranger");
+        uint256 strangePost = posts.post("from a stranger", "");
 
         uint256[] memory ids = new uint256[](2);
         ids[0] = familiarPost;
@@ -85,7 +85,7 @@ contract ParametricFeedTest is Test {
         assertEq(w.recency, 70);
 
         vm.prank(unknown);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
         uint256[] memory ids = new uint256[](1);
         ids[0] = id;
 

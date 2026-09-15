@@ -35,7 +35,7 @@ contract NetVotesFeedTest is Test {
 
         for (uint256 i; i < 3; ++i) {
             vm.prank(author);
-            posts.post("a post");
+            posts.post("a post", "");
         }
     }
 

@@ -19,7 +19,7 @@ contract PostRegistryTest is Test {
 
     function test_PostStoresMetadata() public {
         vm.prank(alice);
-        uint256 id = posts.post("hello monad");
+        uint256 id = posts.post("hello monad", "");
 
         PostRegistry.Post memory p = posts.postOf(id);
         assertEq(p.author, alice);
@@ -30,8 +30,8 @@ contract PostRegistryTest is Test {
 
     function test_PostIdsIncrementFromOne() public {
         vm.startPrank(alice);
-        assertEq(posts.post("a"), 1);
-        assertEq(posts.post("b"), 2);
+        assertEq(posts.post("a", ""), 1);
+        assertEq(posts.post("b", ""), 2);
         vm.stopPrank();
     }
 
@@ -41,28 +41,32 @@ contract PostRegistryTest is Test {
         assertEq(p.author, address(0));
     }
 
-    /// @dev Text must never reach storage. It exists only in the event.
-    function test_TextIsEmittedNotStored() public {
+    /// @dev Text and media are the two things storage never sees: no ranking reads
+    /// either, and a post costs the same whatever it says.
+    function test_TextAndMediaAreEmittedNotStored() public {
         vm.recordLogs();
         vm.prank(alice);
-        posts.post("hello monad");
+        posts.post("hello monad", "ipfs://bafyabc");
 
         Vm.Log[] memory logs = vm.getRecordedLogs();
         assertEq(logs.length, 1);
-        (, string memory text) = abi.decode(logs[0].data, (uint48, string));
+        (,, string memory text, string memory media) =
+            abi.decode(logs[0].data, (uint48, uint48, string, string));
         assertEq(text, "hello monad");
+        assertEq(media, "ipfs://bafyabc");
     }
 
     function test_EmptyTextReverts() public {
         vm.prank(alice);
         vm.expectRevert(PostRegistry.EmptyText.selector);
-        posts.post("");
+        posts.post("", "");
     }
 
-    /// @dev v1 ships likes only; these counters exist for a later version.
+    /// @dev A top-level post has no parent and no replies until it gets one.
+    ///      repostCount is still unused.
     function test_RepostAndReplyCountersStayZero() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         PostRegistry.Post memory p = posts.postOf(id);
         assertEq(p.repostCount, 0);
@@ -72,7 +76,7 @@ contract PostRegistryTest is Test {
 
     function test_LikeIncrementsBothCounters() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         address bob = address(0xB0B);
         vm.prank(alice);
@@ -91,7 +95,7 @@ contract PostRegistryTest is Test {
     ///      and the raw count moves, but it contributes no discovery weight.
     function test_UnreachedLikerAddsNoWeight() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         address sybil = address(0x5117);
         vm.prank(sybil);
@@ -104,7 +108,7 @@ contract PostRegistryTest is Test {
 
     function test_DoubleLikeIsNoop() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         vm.startPrank(alice);
         posts.like(id);
@@ -116,7 +120,7 @@ contract PostRegistryTest is Test {
 
     function test_UnlikeReversesBothCounters() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         vm.startPrank(alice);
         posts.like(id);
@@ -131,7 +135,7 @@ contract PostRegistryTest is Test {
 
     function test_LikeRecordsInteractionTowardAuthor() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         address bob = address(0xB0B);
         vm.prank(bob);
@@ -144,7 +148,7 @@ contract PostRegistryTest is Test {
     ///      interaction happened, not whether the like currently stands.
     function test_UnlikeDoesNotDecrementInteraction() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         address bob = address(0xB0B);
         vm.startPrank(bob);
@@ -163,8 +167,8 @@ contract PostRegistryTest is Test {
 
     function test_PostsOfReturnsAllInOrder() public {
         vm.startPrank(alice);
-        uint256 a = posts.post("a");
-        uint256 b = posts.post("b");
+        uint256 a = posts.post("a", "");
+        uint256 b = posts.post("b", "");
         vm.stopPrank();
 
         uint256[] memory ids = new uint256[](2);
@@ -186,7 +190,7 @@ contract PostRegistryTest is Test {
 
     function test_DislikeIncrementsBothCounters() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         address bob = address(0xB0B);
         vm.prank(alice);
@@ -205,7 +209,7 @@ contract PostRegistryTest is Test {
     /// someone than it can promote them.
     function test_UnreachedDislikerAddsNoWeight() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         vm.prank(address(0x5117));
         posts.dislike(id);
@@ -218,7 +222,7 @@ contract PostRegistryTest is Test {
     /// A vote is one direction at a time, as on Reddit.
     function test_LikingAfterDislikingWithdrawsTheDislike() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         address bob = address(0xB0B);
         vm.prank(alice);
@@ -239,7 +243,7 @@ contract PostRegistryTest is Test {
 
     function test_DislikingAfterLikingWithdrawsTheLike() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         address bob = address(0xB0B);
         vm.prank(alice);
@@ -257,7 +261,7 @@ contract PostRegistryTest is Test {
 
     function test_UndislikeReverses() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         vm.startPrank(alice);
         posts.dislike(id);
@@ -272,7 +276,7 @@ contract PostRegistryTest is Test {
 
     function test_DoubleDislikeIsNoop() public {
         vm.prank(alice);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         vm.startPrank(alice);
         posts.dislike(id);

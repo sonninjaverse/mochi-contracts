@@ -32,12 +32,12 @@ contract AffinityFeedTest is Test {
     ///      is a repeated one. This ranks by the second.
     function test_EngagedAuthorOutranksMerelyFollowedAuthor() public {
         vm.prank(engaged);
-        uint256 warm = posts.post("from someone you talk to");
+        uint256 warm = posts.post("from someone you talk to", "");
         vm.prank(viewer);
         posts.like(warm);
 
         vm.prank(ignored);
-        uint256 cold = posts.post("from someone you only followed");
+        uint256 cold = posts.post("from someone you only followed", "");
 
         uint256[] memory ids = new uint256[](2);
         ids[0] = cold;
@@ -49,7 +49,7 @@ contract AffinityFeedTest is Test {
 
     function test_FollowedButNeverEngagedStillScores() public {
         vm.prank(ignored);
-        uint256 id = posts.post("a");
+        uint256 id = posts.post("a", "");
 
         uint256[] memory ids = new uint256[](1);
         ids[0] = id;
