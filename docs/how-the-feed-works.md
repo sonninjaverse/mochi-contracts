@@ -11,23 +11,29 @@ so switching is instant, costs nothing, and needs no wallet — a signed-out
 visitor gets a ranked feed. Which contract is your choice, and it can be one we
 never wrote: see [writing your own](writing-an-algorithm.md).
 
-## Feed and Explore
+## Explore and Following
 
-| | Feed | Explore |
+| | Explore | Following |
 |---|---|---|
-| Posts considered | accounts you follow | everyone |
-| Ordered by | Hot, New, Best or Controversial | Discovery |
+| Posts considered | everyone | accounts you follow |
+| Ordered by | Discovery | Hot, New, Best or Controversial |
 
 They are two slots, each holding an algorithm. Explore is not a hardcoded
-feature — it is the second slot, and the contract filling it is named in the
-panel and readable from there.
+feature — it is a slot, and the contract filling it is named in the panel and
+readable from there.
+
+Explore is where you land. Following is the better feed once you have one, and
+nobody arrives with one: a first visitor follows no accounts, so a home page
+built from their follows is a home page with nothing in it.
 
 Follow a few people and the two stop overlapping. Measured on the seeded
 network for an account with follows: **zero of the top ten appear in both.**
 
-Until you follow anyone the home feed has nothing of its own, so it shows the
+Until you follow anyone, Following has nothing of its own, so it shows the
 newest posts and says so. Deliberately not what is spreading — that is
 Explore's source, and borrowing it would make both tabs show the same list.
+A thin Following feed says so too: following one account who has posted twice
+is a feed of two posts, and silence there reads as broken rather than correct.
 
 ## The four sorts
 
