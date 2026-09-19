@@ -5,23 +5,20 @@ import {Test} from "forge-std/Test.sol";
 import {BestFeed} from "../../src/algorithms/BestFeed.sol";
 import {ControversialFeed} from "../../src/algorithms/ControversialFeed.sol";
 import {PostRegistry} from "../../src/PostRegistry.sol";
-import {SocialGraph} from "../../src/SocialGraph.sol";
+import {CommunityRegistry} from "../../src/CommunityRegistry.sol";
+import {Weight} from "../lib/Weight.sol";
 
 contract RedditSortsTest is Test {
     BestFeed best;
     ControversialFeed controversial;
     PostRegistry posts;
-    SocialGraph graph;
 
     address seed = address(0x5EED);
     address author = address(0xA07);
     uint256 nextVoter = 0xC0FFEE0;
 
     function setUp() public {
-        address[] memory seeds = new address[](1);
-        seeds[0] = seed;
-        graph = new SocialGraph(seeds);
-        posts = new PostRegistry(graph);
+        posts = new PostRegistry(new CommunityRegistry());
         best = new BestFeed(posts);
         controversial = new ControversialFeed(posts);
     }
@@ -29,8 +26,7 @@ contract RedditSortsTest is Test {
     /// A fresh reachable voter, so every vote carries full weight.
     function voter() internal returns (address a) {
         a = address(uint160(nextVoter++));
-        vm.prank(seed);
-        graph.follow(a);
+        Weight.trust(posts, a, 50); // a whole vote
     }
 
     function vote(uint256 id, uint256 ups, uint256 downs) internal {
@@ -131,7 +127,9 @@ contract RedditSortsTest is Test {
     }
 
     /// The property that made dislikes safe to add at all.
-    function test_SybilDislikesCannotBury() public {
+    /// A dislike from an account the room has downvoted counts for its weight
+    /// and not a whole vote: burying costs influence, so it is not free.
+    function test_DownvotedDislikerCountsForLess() public {
         vm.startPrank(author);
         uint256 target = posts.post("targeted", "");
         uint256 other = posts.post("other", "");
@@ -140,20 +138,23 @@ contract RedditSortsTest is Test {
         vote(target, 10, 0);
         vote(other, 10, 0);
 
-        // A ring of unreachable wallets piles on.
-        for (uint256 i; i < 40; ++i) {
-            vm.prank(address(uint160(0x5117000 + i)));
-            posts.dislike(target);
-        }
+        address troll = address(0xBAD);
+        Weight.trust(posts, troll, 50);
+        vm.prank(troll);
+        uint256 trollPost = posts.post("troll", "");
 
-        uint256[] memory ids = new uint256[](2);
-        ids[0] = target;
-        ids[1] = other;
+        Weight.trust(posts, address(1), 50);
+        Weight.trust(posts, address(2), 50);
+        vm.prank(address(1));
+        posts.dislike(trollPost);
+        vm.prank(address(2));
+        posts.dislike(trollPost);
 
-        (, uint256[] memory scores) = best.rank(address(1), ids);
-        assertEq(posts.postOf(target).dislikeCount, 40);
+        assertEq(posts.weightOf(troll), 0);
+
+        vm.prank(troll);
+        posts.dislike(target);
         assertEq(posts.postOf(target).weightedDislikes, 0);
-        assertEq(scores[0], scores[1], "a ring must not move the score at all");
     }
 
     function test_NeitherRevertsOnEmptyInput() public view {

@@ -4,7 +4,8 @@ pragma solidity 0.8.24;
 import {Test} from "forge-std/Test.sol";
 import {BestFeed} from "../src/algorithms/BestFeed.sol";
 import {PostRegistry} from "../src/PostRegistry.sol";
-import {SocialGraph} from "../src/SocialGraph.sol";
+import {CommunityRegistry} from "../src/CommunityRegistry.sol";
+import {Weight} from "./lib/Weight.sol";
 
 /**
  * @notice Checks the on-chain Wilson bound against reddit's own numbers.
@@ -17,17 +18,13 @@ import {SocialGraph} from "../src/SocialGraph.sol";
 contract WilsonParityTest is Test {
     BestFeed best;
     PostRegistry posts;
-    SocialGraph graph;
 
     address seed = address(0x5EED);
     address author = address(0xA07);
     uint256 nextVoter = 0xC0FFEE0;
 
     function setUp() public {
-        address[] memory seeds = new address[](1);
-        seeds[0] = seed;
-        graph = new SocialGraph(seeds);
-        posts = new PostRegistry(graph);
+        posts = new PostRegistry(new CommunityRegistry());
         best = new BestFeed(posts);
     }
 
@@ -37,8 +34,8 @@ contract WilsonParityTest is Test {
 
         for (uint256 i; i < ups + downs; ++i) {
             address a = address(uint160(nextVoter++));
-            vm.prank(seed);
-            graph.follow(a);
+            // A whole vote is 100 weight; the ladder starts at 1.
+            Weight.trust(posts, a, 50);
             vm.prank(a);
             if (i < ups) posts.like(id);
             else posts.dislike(id);

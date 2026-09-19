@@ -1,16 +1,5 @@
 [
   {
-    "type": "constructor",
-    "inputs": [
-      {
-        "name": "graph_",
-        "type": "address",
-        "internalType": "contract SocialGraph"
-      }
-    ],
-    "stateMutability": "nonpayable"
-  },
-  {
     "type": "function",
     "name": "dislike",
     "inputs": [
@@ -22,19 +11,6 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "graph",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract SocialGraph"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -86,13 +62,8 @@
   },
   {
     "type": "function",
-    "name": "interactionCount",
+    "name": "karmaOf",
     "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
       {
         "name": "",
         "type": "address",
@@ -102,8 +73,8 @@
     "outputs": [
       {
         "name": "",
-        "type": "uint32",
-        "internalType": "uint32"
+        "type": "int256",
+        "internalType": "int256"
       }
     ],
     "stateMutability": "view"
@@ -346,6 +317,25 @@
     "stateMutability": "nonpayable"
   },
   {
+    "type": "function",
+    "name": "weightOf",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
     "type": "event",
     "name": "Disliked",
     "inputs": [
@@ -475,6 +465,11 @@
       }
     ],
     "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "CannotVoteSelf",
+    "inputs": []
   },
   {
     "type": "error",

@@ -1,12 +1,11 @@
 # Mochi Network contracts
 
 A social network on Monad whose **feed ranking is a public contract you can
-read, fork and swap**. This repository is that part of it — the registries, the
-trust graph, and every shipped ranking algorithm.
+read, fork and swap**. This repository is that part of it — the registries,
+the on-chain karma and community ledgers, and every shipped ranking algorithm.
 
-Live at [mochi.meme](https://mochi.meme) on Monad testnet. All contracts are
-verified: source is readable straight from
-[Sourcify](https://repo.sourcify.dev/10143/0x6eb6e878b58a27F115FB9979A882834360F06362/)
+Live at [mochi.meme](https://mochi.meme) on Monad testnet. Source is readable
+straight from [Sourcify](https://repo.sourcify.dev/10143/0x894a39b3Fc34106c0B4724aab8cbB459b8184D46/)
 without cloning anything.
 
 ## The whole idea, in one interface
@@ -29,11 +28,11 @@ that is deployed and rankable today.
 
 | Contract | Address |
 |---|---|
-| SocialGraph | `0x7d11e04ccf5de28a3bdbe116714dc92e08d37cd6` |
-| PostRegistry | `0xed65a47a6622a65ba5fb0fc184798195036047df` |
-| AlgorithmRegistry | `0x3f5cee8729bae8a0aa011332a3108c68cbb5b7e1` |
+| IdentityRegistry | `0xa67ef35974bc8874318d249b6e74c7bd5870d1db` |
+| PostRegistry | `0x894a39b3Fc34106c0B4724aab8cbB459b8184D46` |
+| AlgorithmRegistry | `0xFA1Db0d75b316579099eAf0A986690B68f9e8b21` |
 
-Nine algorithms and the rest of the addresses are in [DEPLOYED.md](DEPLOYED.md).
+Four algorithms and the rest of the addresses are in [DEPLOYED.md](DEPLOYED.md).
 Chain id 10143.
 
 ## Setup
@@ -43,28 +42,30 @@ git submodule update --init --recursive
 forge test
 ```
 
-116 tests, including a Wilson-score parity check against Reddit's own output
-and an invariant that a ranking contract never reverts.
+Over a hundred tests, including a Wilson-score parity check against Reddit's
+own output and an invariant that a ranking contract never reverts.
 
 ## Rules that are not style preferences
 
 - **Post text never enters storage.** It lives in calldata and event data. Only
   what a ranking contract reads belongs in storage.
-- **No admin functions anywhere.** No owner, no upgrade path, no `addSeed`. The
-  trust anchors are fixed in the constructor at deployment, including against
-  us.
+- **No admin functions anywhere.** No owner, no upgrade path, no `addSeed`.
 - **`rank()` must never revert.** A reverting algorithm renders as a blank feed
   with nothing to explain it, and algorithms are deployed by strangers.
-- **Votes are weighted by graph distance, not follower count.** A ring of
-  wallets that follow each other never reaches the anchors, so it weighs
-  nothing however loudly it votes — [why that works](docs/how-the-feed-works.md#votes-are-weighted-by-the-graph).
+- **Votes are weighted by karma, and karma is on chain.** `PostRegistry` keeps
+  the whole ledger: a vote is worth the voter's `weightOf`, a like or dislike
+  moves the author's `karmaOf` by that much, and voting on your own post is
+  refused. A fresh account starts at one per cent of a vote and earns its way
+  up, so a ring of new wallets is worth a hundredth of what it would be with a
+  whole vote each — [why that works](docs/how-the-feed-works.md).
 
 ## Layout
 
 | Path | Purpose |
 |---|---|
 | `src/interfaces/IFeedAlgorithm.sol` | The contract every algorithm implements |
-| `src/` | Registries and the social graph |
+| `src/` | The registries: identity, posts and karma, communities, algorithms |
+| `src/CommunityRegistry.sol` | Community names and public membership; [design](docs/communities.md) |
 | `src/algorithms/` | Shipped ranking algorithms, four of them Reddit's |
 | `src/examples/` | A standalone example to copy |
 | `docs/` | How the feed works, and how to write your own algorithm |

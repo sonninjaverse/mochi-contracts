@@ -2,8 +2,8 @@
 pragma solidity 0.8.24;
 
 import {Test} from "forge-std/Test.sol";
-import {SocialGraph} from "../src/SocialGraph.sol";
 import {PostRegistry} from "../src/PostRegistry.sol";
+import {CommunityRegistry} from "../src/CommunityRegistry.sol";
 import {IPostRegistry, NetVotesFeed} from "../src/examples/NetVotesFeed.sol";
 
 /// @notice The example in docs/writing-an-algorithm.md, tested.
@@ -12,7 +12,6 @@ import {IPostRegistry, NetVotesFeed} from "../src/examples/NetVotesFeed.sol";
 /// does not run. These assert the four rules the guide states, against the
 /// real PostRegistry rather than a mock.
 contract NetVotesFeedTest is Test {
-    SocialGraph graph;
     PostRegistry posts;
     NetVotesFeed feed;
 
@@ -22,16 +21,9 @@ contract NetVotesFeedTest is Test {
     address ring = address(0xBAD);
 
     function setUp() public {
-        address[] memory seeds = new address[](1);
-        seeds[0] = seed;
-        graph = new SocialGraph(seeds);
-        posts = new PostRegistry(graph);
+        posts = new PostRegistry(new CommunityRegistry());
         feed = new NetVotesFeed(IPostRegistry(address(posts)));
 
-        vm.prank(seed);
-        graph.follow(author);
-        vm.prank(seed);
-        graph.follow(voter);
 
         for (uint256 i; i < 3; ++i) {
             vm.prank(author);
@@ -72,16 +64,18 @@ contract NetVotesFeedTest is Test {
         assertEq(ordered[0], 1);
     }
 
-    /// The whole reason to score on weightedLikes rather than likeCount.
-    function test_ignoresVotesFromOutsideTheGraph() public {
+    /// The whole reason to score on weightedLikes rather than likeCount: a
+    /// vote is worth the voter's weight, and a fresh account's is a whole one.
+    function test_votesCarryTheVotersWeight() public {
         vm.prank(ring);
         posts.like(3);
 
         (, uint256[] memory scores) = feed.rank(seed, _ids());
 
-        assertEq(scores[0], 0);
         assertEq(posts.postOf(3).likeCount, 1);
-        assertEq(posts.postOf(3).weightedLikes, 0);
+        // A fresh account starts at one point, not a whole vote.
+        assertEq(posts.postOf(3).weightedLikes, 1);
+        assertGt(scores[0], 0);
     }
 
     /// Rule 2, the one that shows up to a reader as a blank page.

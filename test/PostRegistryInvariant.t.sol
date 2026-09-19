@@ -2,8 +2,8 @@
 pragma solidity 0.8.24;
 
 import {Test} from "forge-std/Test.sol";
-import {SocialGraph} from "../src/SocialGraph.sol";
 import {PostRegistry} from "../src/PostRegistry.sol";
+import {CommunityRegistry} from "../src/CommunityRegistry.sol";
 
 /// @dev Fuzz driver: random actors like and unlike a small set of posts.
 contract LikeHandler is Test {
@@ -41,15 +41,11 @@ contract LikeHandler is Test {
 
 contract PostRegistryInvariantTest is Test {
     PostRegistry posts;
-    SocialGraph graph;
     LikeHandler handler;
     address author = address(0xA07);
 
     function setUp() public {
-        address[] memory seeds = new address[](1);
-        seeds[0] = author;
-        graph = new SocialGraph(seeds);
-        posts = new PostRegistry(graph);
+        posts = new PostRegistry(new CommunityRegistry());
         handler = new LikeHandler(posts, author);
         targetContract(address(handler));
     }

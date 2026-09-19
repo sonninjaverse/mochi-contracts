@@ -33,6 +33,8 @@ interface IPostRegistry {
         uint32 weightedDislikes;
         uint32 repostCount;
         uint32 replyCount;
+        // Present so the tuple decodes; this feed does not use it.
+        bytes32 community;
     }
 
     /// One call for the whole candidate set. Reading posts one at a time works

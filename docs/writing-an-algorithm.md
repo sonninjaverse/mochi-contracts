@@ -61,7 +61,7 @@ struct Post {
     uint48 createdAt;        // unix seconds
     uint48 parentId;         // 0 for a post, else the post it replies to
     uint32 likeCount;        // raw
-    uint32 weightedLikes;    // filtered by the social graph
+    uint32 weightedLikes;    // filtered by the voters' weight
     uint32 dislikeCount;     // raw
     uint32 weightedDislikes; // filtered the same way
     uint32 repostCount;      // reserved
@@ -76,25 +76,22 @@ Use `postsOf` for the candidate set. Calling `postOf` in a loop turns one
 `eth_call` into hundreds of separate storage reads and is the usual reason an
 algorithm trips the 4-second budget.
 
-**`SocialGraph`** — [`0x7d11e04ccf5de28a3bdbe116714dc92e08d37cd6`](https://testnet.monadscan.com/address/0x7d11e04ccf5de28a3bdbe116714dc92e08d37cd6)
+**`PostRegistry`, karma side** — [`0x894a39b3Fc34106c0B4724aab8cbB459b8184D46`](https://testnet.monadscan.com/address/0x894a39b3Fc34106c0B4724aab8cbB459b8184D46)
 
 ```solidity
-function weightOf(address account) external view returns (uint32); // 0-100
-function depthOf(address account) external view returns (uint8);   // 255 = unreached
-mapping(address => mapping(address => uint64)) public followedAt;   // 0 = not following
-mapping(address => uint32) public followerCount;
+function weightOf(address account) external view returns (uint32); // 0-200, 100 = one vote
+function karmaOf(address account) external view returns (int256);  // signed, 100 = one vote
 ```
 
-`weightOf` is how this network resists sybils. Trust is distance from an
-immutable seed set, not follower count, so a ring of ten thousand wallets that
-follow each other stays at depth 255 and weighs nothing however loudly it votes.
-`weightedLikes` is already filtered by it.
+`weightOf` is how this network resists sybils. A vote is worth the voter's own
+karma, so an account the room has downvoted carries a fraction of a fresh one's
+weight and burying someone costs influence. `weightedLikes` and
+`weightedDislikes` are already filtered by it — you never apply it yourself.
 
-**Scoring on `likeCount` instead of `weightedLikes` is the mistake a sybil ring
-is built to exploit.** On the seeded network a hundred ring wallets gave five
-posts ninety-nine likes each; those posts carry `weightedLikes` of zero and do
-not appear in Explore's top twenty. An algorithm that read `likeCount` would put
-them first.
+**Scoring on `likeCount` instead of `weightedLikes` is the mistake the weighting
+exists to prevent.** A ring can move the raw counter freely; only the weighted
+one it cannot, because each of its votes is worth whatever its karma made it
+worth.
 
 ### Replies
 
@@ -204,10 +201,8 @@ shows an unranked list and you will not be told why — which is exactly why rul
 
 | Contract | Address |
 |---|---|
-| PostRegistry | `0xed65a47a6622a65ba5fb0fc184798195036047df` |
-| SocialGraph | `0x7d11e04ccf5de28a3bdbe116714dc92e08d37cd6` |
-| AlgorithmRegistry | `0x3f5cee8729bae8a0aa011332a3108c68cbb5b7e1` |
-| NetVotesFeed (this example) | `0x8ffDad83C6c3e6bbf50088D46DaC87C9B8547601` |
+| PostRegistry | `0x894a39b3Fc34106c0B4724aab8cbB459b8184D46` |
+| AlgorithmRegistry | `0xFA1Db0d75b316579099eAf0A986690B68f9e8b21` |
 
 Chain id 10143, RPC `https://testnet-rpc.monad.xyz`, explorer
 [testnet.monadscan.com](https://testnet.monadscan.com).

@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import {Test} from "forge-std/Test.sol";
 import {PostRegistry} from "../src/PostRegistry.sol";
-import {SocialGraph} from "../src/SocialGraph.sol";
+import {CommunityRegistry} from "../src/CommunityRegistry.sol";
 
 /// @notice Replies and attached media.
 ///
@@ -12,7 +12,6 @@ import {SocialGraph} from "../src/SocialGraph.sol";
 /// replies into the feed as though they were top-level. mediaURI is not: no
 /// ranking reads it, so it stays in event data with the text.
 contract RepliesTest is Test {
-    SocialGraph graph;
     PostRegistry posts;
 
     address alice = address(0xA11CE);
@@ -23,15 +22,13 @@ contract RepliesTest is Test {
         address indexed author,
         uint48 createdAt,
         uint48 parentId,
+        bytes32 community,
         string text,
         string mediaURI
     );
 
     function setUp() public {
-        address[] memory seeds = new address[](1);
-        seeds[0] = alice;
-        graph = new SocialGraph(seeds);
-        posts = new PostRegistry(graph);
+        posts = new PostRegistry(new CommunityRegistry());
     }
 
     function test_postHasNoParent() public {
@@ -87,7 +84,7 @@ contract RepliesTest is Test {
 
     function test_mediaIsEmittedAndNotStored() public {
         vm.expectEmit(true, true, false, true);
-        emit PostCreated(1, alice, uint48(block.timestamp), 0, "look", "ipfs://bafyabc");
+        emit PostCreated(1, alice, uint48(block.timestamp), 0, bytes32(0), "look", "ipfs://bafyabc");
 
         vm.prank(alice);
         posts.post("look", "ipfs://bafyabc");

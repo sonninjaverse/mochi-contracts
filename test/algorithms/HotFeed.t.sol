@@ -4,12 +4,12 @@ pragma solidity 0.8.24;
 import {Test} from "forge-std/Test.sol";
 import {HotFeed} from "../../src/algorithms/HotFeed.sol";
 import {PostRegistry} from "../../src/PostRegistry.sol";
-import {SocialGraph} from "../../src/SocialGraph.sol";
+import {CommunityRegistry} from "../../src/CommunityRegistry.sol";
+import {Weight} from "../lib/Weight.sol";
 
 contract HotFeedTest is Test {
     HotFeed feed;
     PostRegistry posts;
-    SocialGraph graph;
 
     address seed = address(0x5EED);
     address author = address(0xA07);
@@ -18,20 +18,15 @@ contract HotFeedTest is Test {
     function setUp() public {
         vm.warp(1_700_000_000);
         epoch = block.timestamp;
-
-        address[] memory seeds = new address[](1);
-        seeds[0] = seed;
-        graph = new SocialGraph(seeds);
-        posts = new PostRegistry(graph);
+        posts = new PostRegistry(new CommunityRegistry());
         feed = new HotFeed(posts, epoch);
     }
 
-    /// Give `n` distinct reachable accounts a like on `id`.
+    /// Give `n` distinct accounts with a whole vote each a like on `id`.
     function like(uint256 id, uint256 n) internal {
         for (uint256 i; i < n; ++i) {
             address liker = address(uint160(0xC0FFEE0 + i));
-            vm.prank(seed);
-            graph.follow(liker); // depth 1, full weight
+            Weight.trust(posts, liker, 50);
             vm.prank(liker);
             posts.like(id);
         }
@@ -119,28 +114,31 @@ contract HotFeedTest is Test {
         assertApproxEqRel(scores[0], 1e18, 0.01e18);
     }
 
-    /// Unreachable wallets ride the logarithm otherwise — this formula rewards
-    /// exactly the behaviour a ring produces.
-    function test_SybilLikesDoNotLift() public {
-        vm.startPrank(author);
+    /// Weight is karma, so an account the room has downvoted carries less
+    /// influence than one it agrees with.
+    function test_DownvotedVoterCountsForLess() public {
+        vm.prank(author);
         uint256 honest = posts.post("honest", "");
-        uint256 spam = posts.post("spam", "");
-        vm.stopPrank();
 
-        like(honest, 2);
-        for (uint256 i; i < 60; ++i) {
-            vm.prank(address(uint160(0x5117000 + i)));
-            posts.like(spam);
-        }
+        // A trusted account the room then turns on: 50 karma is a whole vote,
+        // and two full-weight dislikes take it to the floor.
+        address troll = address(0xBAD);
+        Weight.trust(posts, troll, 50);
+        vm.prank(troll);
+        uint256 trollPost = posts.post("troll", "");
 
-        uint256[] memory ids = new uint256[](2);
-        ids[0] = spam;
-        ids[1] = honest;
+        Weight.trust(posts, address(1), 50);
+        Weight.trust(posts, address(2), 50);
+        vm.prank(address(1));
+        posts.dislike(trollPost);
+        vm.prank(address(2));
+        posts.dislike(trollPost);
 
-        (uint256[] memory out,) = feed.rank(address(1), ids);
-        assertEq(posts.postOf(spam).likeCount, 60);
-        assertEq(posts.postOf(spam).weightedLikes, 0);
-        assertEq(out[0], honest);
+        assertEq(posts.weightOf(troll), 0);
+
+        vm.prank(troll);
+        posts.like(honest);
+        assertEq(posts.postOf(honest).weightedLikes, 0);
     }
 
     function test_EmptyCandidatesDoesNotRevert() public view {

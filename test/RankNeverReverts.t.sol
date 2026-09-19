@@ -2,20 +2,17 @@
 pragma solidity 0.8.24;
 
 import {Test} from "forge-std/Test.sol";
-import {SocialGraph} from "../src/SocialGraph.sol";
 import {PostRegistry} from "../src/PostRegistry.sol";
+import {CommunityRegistry} from "../src/CommunityRegistry.sol";
 import {IFeedAlgorithm} from "../src/interfaces/IFeedAlgorithm.sol";
 import {ChronoFeed} from "../src/algorithms/ChronoFeed.sol";
-import {FollowFeed} from "../src/algorithms/FollowFeed.sol";
-import {AffinityFeed} from "../src/algorithms/AffinityFeed.sol";
-import {SerendipityFeed} from "../src/algorithms/SerendipityFeed.sol";
-import {DiscoveryFeed} from "../src/algorithms/DiscoveryFeed.sol";
-import {ParametricFeed} from "../src/algorithms/ParametricFeed.sol";
+import {HotFeed} from "../src/algorithms/HotFeed.sol";
+import {BestFeed} from "../src/algorithms/BestFeed.sol";
+import {ControversialFeed} from "../src/algorithms/ControversialFeed.sol";
 
 /// @notice A reverting rank() renders as a blank feed, so every shipped
 ///         algorithm must tolerate any input the client can produce.
 contract RankNeverRevertsTest is Test {
-    SocialGraph graph;
     PostRegistry posts;
     IFeedAlgorithm[] algos;
 
@@ -23,20 +20,13 @@ contract RankNeverRevertsTest is Test {
     address author = address(0xA07);
 
     function setUp() public {
-        address[] memory seeds = new address[](1);
-        seeds[0] = seed;
-        graph = new SocialGraph(seeds);
-        posts = new PostRegistry(graph);
+        posts = new PostRegistry(new CommunityRegistry());
 
         algos.push(new ChronoFeed(posts));
-        algos.push(new FollowFeed(graph, posts));
-        algos.push(new AffinityFeed(graph, posts));
-        algos.push(new SerendipityFeed(graph, posts));
-        algos.push(new DiscoveryFeed(graph, posts));
-        algos.push(new ParametricFeed(graph, posts));
+        algos.push(new HotFeed(posts, block.timestamp));
+        algos.push(new BestFeed(posts));
+        algos.push(new ControversialFeed(posts));
 
-        vm.prank(seed);
-        graph.follow(author);
         for (uint256 i; i < 5; ++i) {
             vm.prank(author);
             posts.post("a post", "");

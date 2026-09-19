@@ -4,19 +4,15 @@ pragma solidity 0.8.24;
 import {Test} from "forge-std/Test.sol";
 import {ChronoFeed} from "../../src/algorithms/ChronoFeed.sol";
 import {PostRegistry} from "../../src/PostRegistry.sol";
-import {SocialGraph} from "../../src/SocialGraph.sol";
+import {CommunityRegistry} from "../../src/CommunityRegistry.sol";
 
 contract ChronoFeedTest is Test {
     ChronoFeed feed;
     PostRegistry posts;
-    SocialGraph graph;
     address alice = address(0xA11CE);
 
     function setUp() public {
-        address[] memory seeds = new address[](1);
-        seeds[0] = alice;
-        graph = new SocialGraph(seeds);
-        posts = new PostRegistry(graph);
+        posts = new PostRegistry(new CommunityRegistry());
         feed = new ChronoFeed(posts);
     }
 
